@@ -13,7 +13,6 @@ function main () {
     }
   }
   catch (Exception $e) {
-    // Bad Request: Services requested is not available
     http_response_code(400);
     print $e->getMessage();
   }

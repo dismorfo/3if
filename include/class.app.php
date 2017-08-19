@@ -3,9 +3,9 @@
 class App {
 
   // Djatoka URL
-  private $resolver = 'http://dl-img.home.nyu.edu/adore-djatoka/resolver';
+  public static $resolver = 'http://dl-img.home.nyu.edu/adore-djatoka/resolver';
 
-  private $files_server = 'http://dlib.nyu.edu/files';
+  public static $filesserver = 'http://dlib.nyu.edu/files';
   
   public function __construct($request = null) {
     try {
@@ -186,7 +186,7 @@ class App {
     $identifier = "$prefix/$resource.$format";  
         
     // Djatoka URL
-    $service = $this->resolver;
+    $service = $this->get('resolver');
     
     // Service to request a Region
     $svc_id = 'info:lanl-repo/svc/getRegion';
@@ -209,9 +209,7 @@ class App {
     // Rotates image by 90/180/270 degrees clockwise.
     $rotate = 0;
     
-    $files_server = $this->files_server;
-
-    $identifier = $files_server . '/' . $identifier;
+    $identifier = $this->get('filesserver') . '/' . $identifier;
     
     $arguments = array(
       'url_ver' => $url_ver,
@@ -240,6 +238,14 @@ class App {
     return $service;
 
   }
+  
+  public function get_resolver() {
+    return self::$resolver;
+  }
+    
+  public function get_filesserver() {
+    return self::$filesserver;
+  }  
 
   /**
    * Setters
@@ -340,10 +346,12 @@ class App {
 
   private function set_rotation($input) {
     // rotates image by 0/90/180/270 degrees clockwise.
-    $this->rotation = 0;
     if (is_numeric($input)) {
       $rotation = (int) $input;
-      if ($rotation >= 90 && $rotation < 180) {
+      if ($rotation < 90) {
+        $this->rotation = 0;      
+      }
+      elseif ($rotation >= 90 && $rotation < 180) {
         $this->rotation = 90;
       }
       elseif ($rotation >= 180 && $rotation < 270) {
@@ -352,6 +360,9 @@ class App {
       elseif ($rotation >= 270) {
         $this->rotation = 270;
       }
+    }
+    else {
+      throw new Exception("Invalid roation");
     }
   }
   

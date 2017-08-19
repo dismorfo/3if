@@ -1,21 +1,21 @@
 <?php
 
 class App {
-  
+
   // Djatoka URL
   private $resolver = 'http://dl-img.home.nyu.edu/adore-djatoka/resolver';
 
   private $files_server = 'http://dlib.nyu.edu/files';
 
   public function __construct() {
-    
-    //include_once './include/krumo/class.krumo.php';
-    
-    include_once 'include/class.image.php';
 
     $url = $this->get('url');
 
     $size = $this->get('size');
+
+    spl_autoload_register(function ($class) {
+      require_once "include/class.$class.php";
+    });
 
     if ($size) {
       $size = explode(',', $size);
@@ -81,7 +81,7 @@ class App {
    * Provides central static variable storage.
    * See https://api.drupal.org/api/drupal/includes%21bootstrap.inc/function/drupal_static/7.x
    */
-   private function &_static($name, $default_value = NULL, $reset = FALSE) {
+  private function &_static($name, $default_value = NULL, $reset = FALSE) {
     static $data = array(), $default = array();
     // First check if dealing with a previously defined static variable.
     if (isset($data[$name]) || array_key_exists($name, $data)) {
@@ -475,9 +475,7 @@ class App {
       $size = explode(',', $size);
       $width = $size[0];
       $height = $size[1];
-      if (!$width && $height) {
-      $arguments['svc.scale'] = $height;
-      }
+      if (!$width && $height) $arguments['svc.scale'] = $height;
     }
 
     return $this->build_url($service, array('query' => $arguments));

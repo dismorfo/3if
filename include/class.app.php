@@ -7,7 +7,7 @@ class App {
 
   public static $filesserver = 'http://dlib.nyu.edu/files';
   
-  public function __construct($request = null) {
+  public function __construct($request = NULL) {
     try {
       spl_autoload_register(function ($class) {
         require_once __DIR__ . '/class.' . strtolower($class) . '.php';
@@ -18,6 +18,17 @@ class App {
       throw new Exception($e->getMessage());
     }
   }
+  
+  public function status_header($setHeader = NULL) {
+    static $theHeader = NULL;
+    //if we already set it, then return what we set before (can't set it twice anyway)
+    if ($theHeader) {
+      return $theHeader;
+    }
+    $theHeader = $setHeader;
+    header("HTTP/1.1 $setHeader");
+    return $setHeader;
+  }  
 
   public function set($name, $value) {
     if (method_exists($this, ($method = 'set_' . $name))) {
@@ -71,7 +82,7 @@ class App {
     // Use Djakota to scale using height or for "max" request
     // This and all future requests should be directed to the given URI.
     else {
-      http_response_code(301);
+      status_header(301);
       header("Location: $url");
     }
   }  
@@ -394,7 +405,13 @@ class App {
       $base_path = '/';
     }
       
-    $request_uri = ($request) ? parse_url($request)['path'] : $_SERVER['REQUEST_URI'];
+    if ($request) {
+      $parse_url = parse_url($request);
+      $request_uri = $parse_url['path'];
+    }
+    else {
+      $request_uri = $_SERVER['REQUEST_URI'];
+    }
 
     $uri = filter_var($request_uri, FILTER_SANITIZE_STRING);
       

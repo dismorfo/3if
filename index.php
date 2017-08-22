@@ -1,18 +1,28 @@
 <?php
 
+// http_response_code not in PHP 5.3.3
+// http://php.net/manual/en/function.http-response-code.php
+function status_header($setHeader = NULL) {
+  static $theHeader = NULL;
+  if ($theHeader) {
+    return $theHeader;
+  }
+  $theHeader = $setHeader;
+  header("HTTP/1.1 $setHeader");
+  return $setHeader;
+}
+
 function main () {
   try {
     require_once __DIR__ . '/include/class.app.php';
     $app = new App();
-    //$app = new App('books/nyu_aco000398%252Fnyu_aco000398_afr03_d/full/500,/0/default.jpg');
     if ($app) {
       $app->output();
     }
     print $app->get('url');
-    
   }
   catch (Exception $e) {
-    http_response_code(400);
+    status_header(400);
     print $e->getMessage();
   }
 }

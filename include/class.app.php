@@ -54,39 +54,23 @@ class App {
   }
   
   public function output() {
- 
-    $size = $this->get('size');
-    
     $url = $this->get('url');
-    
-    if ($size) {
-      $size = explode(',', $size);
-      $width = $size[0];
-      $height = $size[1];
+    $alter = $this->get('alter');
+    if ($alter) {
+      $image = new Image($url);
+      $width = $this->get('width');
+      $height = $this->get('height');
       if ($width && $height) {
-        $image = new Image();
-        $image->load($url);
         $image->resize($width, $height);
-        $image->output($image);
-        exit;
-      }
-      else if ($width && !$height) {
-        $image = new Image();
-        $image->load($url);
-        $image->resizeToWidth($width);
-        $image->output();
-        exit;
       }
       else {
-        // Use Djakota to scale using height
-        // This and all future requests should be directed to the given URI.
-        http_response_code(301);
-        header("Location: $url");
-      }      
+        $image->resizeToWidth($width);
+      }
+      $image->output($image);  
     }
+    // Use Djakota to scale using height or for "max" request
+    // This and all future requests should be directed to the given URI.
     else {
-      // Use Djakota to scale using height
-      // This and all future requests should be directed to the given URI.
       http_response_code(301);
       header("Location: $url");
     }
@@ -96,15 +80,15 @@ class App {
    * Getters
    */
 
-  private function get_arguments() {
+  public function get_arguments() {
     return $this->arguments;
   }
 
-  private function get_service() {
+  public function get_service() {
     return $this->service;
   }
 
-  private function get_identifier() {
+  public function get_identifier() {
     return $this->identifier;
   }  
 
@@ -115,7 +99,7 @@ class App {
    * specifies that the entire image should be returned.
    * See http://iiif.io/api/image/2.1/#region
    */
-  private function get_region() {
+  public function get_region() {
     return $this->region;
   }
 
@@ -124,11 +108,11 @@ class App {
    * the extracted region is to be scaled.   
    * See http://iiif.io/api/image/2.1/#size
    */
-  private function get_size() {
+  public function get_size() {
      return $this->size;
    }
 
-  private function get_rotation() {
+  public function get_rotation() {
     return $this->rotation;
   }
   
@@ -137,11 +121,23 @@ class App {
    * delivered in color, grayscale or black and white.
    * See http://iiif.io/api/image/2.1/#quality
    */
-  private function get_quality() {
+  public function get_quality() {
     return $this->quality;
   }
   
-  private function get_services() {
+  public function get_alter() {
+    return $this->alter;
+  }
+  
+  public function get_height() {
+    return $this->height;
+  }
+
+  public function get_width() {
+    return $this->width;
+  }  
+  
+  public function get_services() {
     return array(
       'books',
       'photos',
@@ -150,14 +146,14 @@ class App {
     );
   }
   
-  private function get_regions() {
+  public function get_regions() {
     // Looking forward to use Loris, in the meantime we only "implement" full
     return array(
       'full',
     );
   }
   
-  private function get_qualities() {
+  public function get_qualities() {
     return array(
       'color', // The image is returned in full color. 
       'gray', // The image is returned in grayscale, where each pixel is black, white or any shade of gray in between.
@@ -166,7 +162,7 @@ class App {
     );
   }
 
-  private function get_url() {
+  public function get_url() {
 
     // Introducing djatoka
     // http://www.dlib.org/dlib/september08/chute/09chute.html
@@ -181,12 +177,11 @@ class App {
       
     // we **alway** assume JP2
     $format = 'jp2';
-      
-    // image identifier
-    $identifier = "$prefix/$resource.$format";  
         
     // Djatoka URL
     $service = $this->get('resolver');
+    
+    $filesserver = $this->get('filesserver');
     
     // Service to request a Region
     $svc_id = 'info:lanl-repo/svc/getRegion';
@@ -200,16 +195,9 @@ class App {
       
     // Mime type of the image format to be provided as response.
     $mime = 'image/jpeg';
-      
-    // Integer. Where 0 is the lowest resolution with each increment doubling the image in
-    // size. Default: Max level of requested image, based on the number of Discrete 
-    // Wavelet Transform (DWT) decomposition levels.
-    $level = 0;
     
-    // Rotates image by 90/180/270 degrees clockwise.
-    $rotate = 0;
-    
-    $identifier = $this->get('filesserver') . '/' . $identifier;
+    // file identifier
+    $identifier =  "$filesserver/$prefix/$resource.$format";
     
     $arguments = array(
       'url_ver' => $url_ver,
@@ -218,16 +206,18 @@ class App {
       'svc.format' => $mime,
       'rft_id' => $identifier,
     );
-
+    
+    // Rotates image by 90/180/270 degrees clockwise.
     $arguments['svc.rotate'] = $this->get('rotation');
 
-    $size = $this->get('size');
+    $alter = $this->get('alter');
 
-    if ($size) {
-      $size = explode(',', $size);
-      $width = $size[0];
-      $height = $size[1];
-      if (!$width && $height) $arguments['svc.scale'] = $height;
+    if ($alter) {
+      $width = $this->get('width');
+      $height = $this->get('height');
+      if (!$width) {
+        $arguments['svc.scale'] = $height;
+      }
     }
 
     // Options
@@ -314,6 +304,7 @@ class App {
         */
        case 'max':
          $this->size = FALSE; // if no size, Djatoka Image Server will return the original size
+         $this->alter = FALSE;         
          break;
        /**
         * Test w, OR ,h ORO w,h
@@ -335,10 +326,24 @@ class App {
          */
         //',h',
         if (isset($matches[0])) {
+
           $this->size = $matches[0];
+          // we can use the first character to check the type of request
+          // if size has a comma (,) as the the first charater, we need
+          // resize by height, otherwise by width
+          $first_character = $matches[0][0];
+          
+          $this->alter = ($first_character == ',') ? FALSE : TRUE;
+          
+          $size = explode(',', $size);
+      
+          $this->width = $size[0];
+          
+          $this->height = $size[1];
+          
         }
         else {
-          throw new Exception("Invalid size $size");
+          throw new Exception("Invalid size.");
         }
         break;
       }
@@ -400,25 +405,22 @@ class App {
     
     $arguments = explode('/', $uri);
     
-    if (empty($arguments[0])) {
-      // remove empty value
-      unset($arguments[0]);
-      // reset index
-      array_merge($arguments);
-    }  
+    // https://stackoverflow.com/questions/3654295/remove-empty-array-elements
+    // https://stackoverflow.com/questions/3401850/after-array-filter-how-can-i-reset-the-keys-to-go-in-numerical-order-starting    
+    $arguments = array_values(array_filter($arguments, function($value) { return $value !== ''; }));
 
     // We required 6 arguments. Don't waste time is we don't have them.
     if (count($arguments) != 6) {
       throw new Exception("Bad Request.");
     }
-
+    
     // Set idividual arguments
     // {scheme}://{server}{/prefix}/{identifier}/{region}/{size}/{rotation}/{quality}.{format}
 
     // Service
     // Should be the 1st value in argument array
     $this->set('service', $arguments[0]);
-
+    
     // Identifier
     // Should be the 2nd value in argument array
     $this->set('identifier', $arguments[1]);

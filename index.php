@@ -1,16 +1,15 @@
 <?php
 
-  //$app = new App('http://localhost:8000/iiif/books/nyu_aco000398%252Fnyu_aco000398_afr03_d/full/500,/0/default.jpg');  
-
 function main () {
   try {
-    spl_autoload_register(function ($class) {
-      require_once __DIR__ . '/include/class.' . strtolower($class) . '.php';
-    });
+    require_once __DIR__ . '/include/class.app.php';
     $app = new App();
+    //$app = new App('books/nyu_aco000398%252Fnyu_aco000398_afr03_d/full/500,/0/default.jpg');
     if ($app) {
       $app->output();
     }
+    print $app->get('url');
+    
   }
   catch (Exception $e) {
     http_response_code(400);

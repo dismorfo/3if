@@ -6,6 +6,10 @@
 
 class Image {
 
+  public function __construct($url) {
+    $this->load($url);
+  }
+  
   function load($url) {
     $info = getimagesize($url);
     $this->type = $info[2];

@@ -221,14 +221,12 @@ class App {
     // Rotates image by 90/180/270 degrees clockwise.
     $arguments['svc.rotate'] = $this->get('rotation');
 
-    $alter = $this->get('alter');
-
-    if ($alter) {
-      $width = $this->get('width');
-      $height = $this->get('height');
-      if (!$width) {
-        $arguments['svc.scale'] = $height;
-      }
+    $width = $this->get('width');
+    
+    $height = $this->get('height');
+    
+    if (!$width && $height) {
+      $arguments['svc.scale'] = $height;
     }
 
     // Options

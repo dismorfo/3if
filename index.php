@@ -19,7 +19,6 @@ function main () {
     if ($app) {
       $app->output();
     }
-    print $app->get('url');
   }
   catch (Exception $e) {
     status_header(400);

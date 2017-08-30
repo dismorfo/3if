@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>International Brigades Archive, Moscow</title>
+    <link rel="stylesheet" href="http://bulma.io/css/bulma-docs.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.4.2/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.13.1/lodash.min.js"></script>
+    <script src="https://unpkg.com/vue-lazyload@1.0.6/vue-lazyload.js"></script>
+  </head>
+  <body>
+    <section class="section">
+      <div class="container">
+        <h1 class="title">International Brigades Archive, Moscow</h1>
+        <div class="content">
+          <p class="subtitle">Curated selection of International Brigades Archive, Moscow pictures.</h2>
+          <div id="app" class="columns is-mobile is-multiline">
+            <image-item v-for="item in images" v-bind:image="item" v-bind:key="item.id"></image-item>
+          </div>
+        </div>          
+      </div>
+    </section>
+    <script>
+      let template = `
+        <div ref="container" class="column is-one-quarter">
+          <img v-lazy="image.id"/>
+          <div v-lazy:background-image="image.id"></div>
+        </div>
+      `
+ 
+      Vue.component('image-item', { props: ['image'], template: template })
+
+      Vue.use(VueLazyload)  
+        
+      let app = new Vue({
+        
+        el: '#app',
+        
+        data: {
+          images : []
+        },
+        
+        created: function () {
+          this.fetchImages()
+        },
+        
+        updated: function () {},
+        
+        methods: {
+          fetchImages: function () {
+            var vm = this
+            axios.get('http://localhost:8000/alba/albamoscow.json')
+              .then((response) =>  {
+                response.data.map((value) => {
+                  let encode = encodeURIComponent(encodeURIComponent(value.id))
+                  let url = 'http://dev-sites.dlib.nyu.edu/imageurlprocessor/books/' + encode + '/full/,250/0/default.jpg'
+                  value.id = url
+                  vm.images.push(value)
+                })
+              })
+              .catch((error) => {
+                console.log('Error! Could not reach the API. ' + error)
+              })
+            }
+          }
+      })
+    </script>    
+  </body>
+</html>

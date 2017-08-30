@@ -30,8 +30,8 @@ new Vue({
         .then(function (response) {
           response.data.map(function (image) {
             var identifier = encodeURIComponent(encodeURIComponent(image.id))
-            value.id = 'http://dev-sites.dlib.nyu.edu/imageurlprocessor/books/' + identifier + '/' + region + '/' + size + '/' + rotation + '/default.jpg'
-            vm.images.push(value)
+            image.id = 'http://dev-sites.dlib.nyu.edu/imageurlprocessor/books/' + identifier + '/' + region + '/' + size + '/' + rotation + '/default.jpg'
+            vm.images.push(image)
           })
         })
         .catch((error) => {

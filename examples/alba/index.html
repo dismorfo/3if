@@ -24,13 +24,13 @@
       </div>
     </section>
     <script>
+
       var template = `
         <div ref="container" class="column is-one-quarter">
           <img v-lazy="image.id"/>
           <div v-lazy:background-image="image.id"></div>
         </div>
       `
- 
       Vue.component('image-item', { props: ['image'], template: template })
 
       Vue.use(VueLazyload)  

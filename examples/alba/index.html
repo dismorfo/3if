@@ -24,7 +24,7 @@
       </div>
     </section>
     <script>
-      let template = `
+      var template = `
         <div ref="container" class="column is-one-quarter">
           <img v-lazy="image.id"/>
           <div v-lazy:background-image="image.id"></div>
@@ -35,7 +35,7 @@
 
       Vue.use(VueLazyload)  
         
-      let app = new Vue({
+      var app = new Vue({
         
         el: '#app',
         

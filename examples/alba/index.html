@@ -52,11 +52,14 @@
         methods: {
           fetchImages: function () {
             var vm = this
+            var region = 'full'
+            var rotation = '0'
+            var size = ',250'
             axios.get('http://dev-sites.dlib.nyu.edu/imageurlprocessor/examples/alba/albamoscow.json')
               .then((response) =>  {
                 response.data.map((value) => {
-                  let encode = encodeURIComponent(encodeURIComponent(value.id))
-                  let url = 'http://dev-sites.dlib.nyu.edu/imageurlprocessor/books/' + encode + '/full/,250/0/default.jpg'
+                  var encode = encodeURIComponent(encodeURIComponent(value.id))
+                  var url = 'http://dev-sites.dlib.nyu.edu/imageurlprocessor/books/' + encode + '/' + region + '/' + size + '/' + rotation + '/default.jpg'
                   value.id = url
                   vm.images.push(value)
                 })

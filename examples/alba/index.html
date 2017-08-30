@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="http://bulma.io/css/bulma-docs.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.4.2/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lodash@4.13.1/lodash.min.js"></script>
     <script src="https://unpkg.com/vue-lazyload@1.0.6/vue-lazyload.js"></script>
   </head>
   <body>
@@ -20,55 +19,9 @@
           <div id="app" class="columns is-mobile is-multiline">
             <image-item v-for="item in images" v-bind:image="item" v-bind:key="item.id"></image-item>
           </div>
-        </div>          
+        </div>
       </div>
     </section>
-    <script>
-
-      var template = `
-        <div ref="container" class="column is-one-quarter">
-          <img v-lazy="image.id"/>
-          <div v-lazy:background-image="image.id"></div>
-        </div>
-      `
-      Vue.component('image-item', { props: ['image'], template: template })
-
-      Vue.use(VueLazyload)  
-        
-      var app = new Vue({
-        
-        el: '#app',
-        
-        data: {
-          images : []
-        },
-        
-        created: function () {
-          this.fetchImages()
-        },
-        
-        updated: function () {},
-        
-        methods: {
-          fetchImages: function () {
-            var vm = this
-            var region = 'full'
-            var rotation = '0'
-            var size = ',250'
-            axios.get('http://dev-sites.dlib.nyu.edu/imageurlprocessor/examples/alba/albamoscow.json')
-              .then((response) =>  {
-                response.data.map((image) => {
-                  var identifier = encodeURIComponent(encodeURIComponent(image.id))
-                  value.id = 'http://dev-sites.dlib.nyu.edu/imageurlprocessor/books/' + identifier + '/' + region + '/' + size + '/' + rotation + '/default.jpg'
-                  vm.images.push(value)
-                })
-              })
-              .catch((error) => {
-                console.log('Error! Could not reach the API. ' + error)
-              })
-            }
-          }
-      })
-    </script>    
+    <script src="./app.js"></script>
   </body>
 </html>
